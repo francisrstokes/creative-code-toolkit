@@ -4,7 +4,8 @@
   "description": "Suite of functions for creative coding",
   "main": "dist/creative-code-toolkit.module.js",
   "scripts": {
-    "test": "mocha tests"
+    "test": "mocha tests",
+    "build": "gulp"
   },
   "repository": {
     "type": "git",
