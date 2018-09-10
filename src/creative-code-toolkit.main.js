@@ -1,86 +1,112 @@
-// curry :: (a -> b -> ... -> n) -> (a -> b) -> (b -> ...) -> (... -> n)
-const curry = (fn) => {
-  const curried = (...args) => {
-    if (args.length >= fn.length) {
-      return fn(...args);
-    }
-    return (...argsNext) => curried(...args, ...argsNext);
-  };
-  return curried;
-};
+/**
+ * Map v in range [a, b] to range [c, d]
+ * @param {Number} v
+ * @param {Number} a
+ * @param {Number} b
+ * @param {Number} c
+ * @param {Number} d
+ */
+const mapRange = (v, a, b, c, d) => (v-a)/(b-a) * (d-c) + c;
 
-// pipe :: (a -> b) -> (b -> ...) -> (... -> n)
-const pipe = (fn1, ...functions) =>
-  (...args) =>
-    functions.reduce((acc, fn) => fn(acc), fn1(...args));
+/**
+ * Map the output sin(v / div) to the range [a, b]
+ * @param {Number} v
+ * @param {Number} div
+ * @param {Number} a
+ * @param {Number} b
+ */
+const sinMap = (v, div, a, b) => mapRange(Math.sin(v / div), -1, 1, a, b);
 
-// compose :: (... -> n) -> (b -> ...) -> (a -> b)
-const compose = (...functions) => pipe(...functions.reverse());
+/**
+ * Map the output cos(v / div) to the range [a, b]
+ * @param {Number} v
+ * @param {Number} div
+ * @param {Number} a
+ * @param {Number} b
+ */
+const cosMap = (v, div, a, b) => mapRange(Math.cos(v / div), -1, 1, a, b);
 
-// mapRange :: toRange -> tromRange -> value  -> Number
-// mapRange :: Vector  -> Vector    -> Number -> Number
-const mapRange = curry(([c, d], [a, b], v) => (v-a)/(b-a) * (d-c) + c);
+/**
+ * if v is greater than M or less than m, wrap the value around to stay in this range
+ * @param {Number} v
+ * @param {Number} m
+ * @param {Number} M
+ */
+const wrapValue = (v, m, M) => m + (v % M);
 
-// sinMap :: Vector -> Number -> Number
-const sinMap = curry(([a, b], div, v) => mapRange([a, b], [-1, 1], Math.sin(v / div)));
-
-// cosMap :: Vector -> Number -> Number
-const cosMap = curry(([a, b], div, v) => mapRange([a, b], [-1, 1], Math.cos(v / div)));
-
-// sMap :: Vector -> Number -> Number
-const sMap = curry((R, p, t) => mapRange(R, [-1, 1], Math.sin(t**p)));
-
-// cMap :: Vector -> Number -> Number
-const cMap = curry((R, p, t) => mapRange(R, [-1, 1], Math.cos(t**p)));
-
-// wrapValue :: Number -> Number -> Number -> Number
-const wrapValue = curry((m, M, v) => {
-  if (v < m) {
-    const diff = m - v - 1;
-    return wrapValue(m, M, M - diff);
-  }
-  if (v > M) {
-    const diff = v - M - 1;
-    return wrapValue(m, M, m + diff);
-  }
-  return v;
-});
-
-// deepArrayCopy :: [a] -> [a]
+/**
+ * Return a deep copy array a
+ * @param {Array<any>} a
+ */
 const deepArrayCopy = (a) => a.map(ae => (Array.isArray(ae)) ? deepArrayCopy(ae) : ae);
 
-// genArray :: Number -> []
+/**
+ * Create an array of size s
+ * @param {Number} s
+ */
 const genArray = (s) => Array.apply(null, {length: s});
 
-// get1dY :: Number -> Number -> Number
-const get1dY = curry((cols, i) => Math.floor(i / cols));
+/**
+ * Get the Y component of a 1d array containing 2d data when the index is i
+ * @param {Number} i
+ * @param {Number} cols
+ */
+const get1dY = (i, cols) => (i / cols)|0;
 
-// get1dX :: Number -> Number -> Number
-const get1dX = curry((cols, i) => (i % cols));
+/**
+ * Get the X component of a 1d array containing 2d data when the index is i
+ * @param {Number} i
+ * @param {Number} cols
+ */
+const get1dX = (i, cols) => (i % cols);
 
-// get1dIndex :: Number -> Number -> Number -> Number
-const get1dIndex = curry((cols, x, y) => (y * cols) + x);
+/**
+ * Get the index to a 1d Array from coordinates where the number of columns is cols
+ * @param {*} x
+ * @param {*} y
+ * @param {*} cols
+ */
+const get1dIndex = (x, y, cols) => (y * cols) + x;
 
-// without :: (*) -> [*] -> [*]
-const without = curry((item, arr) => {
+/**
+ * Copy of an array without a given element
+ * @param {*} arr
+ * @param {*} item
+ */
+const without = (arr, item) => {
   const itemIndex = arr.indexOf(item);
   if (itemIndex === -1) return [...arr];
   const arr2 = [...arr];
   arr2.splice(itemIndex, 1);
   return arr2;
-});
+}
 
-// choose :: [a] -> a
+/**
+ * pick a random element from the array a
+ * @param {Array<any>} a
+ */
 const choose = (a) => a[(Math.random() * a.length)|0];
 
-// chooseWithout :: a -> [a] -> [a]
-const chooseWithout = curry((item, arr) => choose(without(arr, item)));
+/**
+ * Pick a random element from an array without a given item
+ * @param {*} arr
+ * @param {*} item
+ */
+const chooseWithout = (arr, item) => choose(without(arr, item));
 
-// rndB :: Vector -> Number
-const rndB = ([a = 0, b = 1]) => mapRange([a, b], [0, 1], Math.random());
+/**
+ * Random number in range [a, b]
+ * @param {Number} a
+ * @param {Number} b
+ */
+const rndB = (a = 0, b = 1) => Math.random() * (b - a + 1) + a;
 
-// rndIntB :: Vector -> Number
-const rndIntB = ([a = 0, b = 1]) => Math.round(rndB(a, b) + 0.5);
+/**
+ * Random integer in range [a, b]
+ * @param {Number} a
+ * @param {Number} b
+ */
+const rndIntB = (a = 0, b = 1) => (rndB(a, b) + 0.5) >> 0;
 
 /* start window exports */
 /**
@@ -101,8 +127,6 @@ const polute = function () {
   window.without = without;
   window.rndB = rndB;
   window.rndIntB = rndIntB;
-  window.sMap = sMap;
-  window.cMap = cMap;
 }
 
 /**
@@ -123,9 +147,7 @@ window.ccToolkit = {
   chooseWithout,
   rndB,
   rndIntB,
-  polute,
-  sMap,
-  cMap
+  polute
 };
 /* end window exports */
 
@@ -144,6 +166,4 @@ export { choose as choose };
 export { chooseWithout as chooseWithout };
 export { rndB as rndB };
 export { rndIntB as rndIntB };
-export { sMap as sMap };
-export { cMap as cMap };
 /* end exports */
